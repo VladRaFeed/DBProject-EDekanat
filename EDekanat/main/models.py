@@ -13,3 +13,16 @@ class Speciality(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Course(models.Model):
+    number = models.IntegerField(unique=False)
+    specialityid = models.ForeignKey(Speciality, on_delete=models.CASCADE)
+
+
+    class Meta:
+        ordering=['number']
+        verbose_name = 'Course'
+        verbose_name_plural = 'Courses'
+
+    def __str__(self):
+        return str(self.number)
