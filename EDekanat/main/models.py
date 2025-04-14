@@ -26,7 +26,7 @@ class Course(models.Model):
         verbose_name_plural = 'Courses'
 
     def __str__(self):
-        return str(self.number)
+        return f"{self.number} курс ({self.specialityid.name})"
 
 class Group(models.Model):
     name = models.CharField(max_length=50, unique=True)
