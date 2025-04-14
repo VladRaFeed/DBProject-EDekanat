@@ -77,16 +77,15 @@ WSGI_APPLICATION = 'EDekanat.wsgi.application'
 DATABASE_URL = 'postgresql://dworker:VKpsa1wXrYCaq2Kx2NBqi73GkQ7dJK4j@dpg-cvt994be5dus73a4qc20-a.oregon-postgres.render.com/edekanat_db'
 
 DATABASES = {
-    'default': dj_database_url.parse(DATABASE_URL)
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'EDekanat_db',
+        'USER': 'postgres',
+        'PASSWORD': '123321',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 
 # Password validation
