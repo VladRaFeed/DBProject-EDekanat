@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 
 # Create your models here.
 class Speciality(models.Model):
@@ -26,6 +27,47 @@ class Course(models.Model):
 
     def __str__(self):
         return str(self.number)
+
+class Group(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    courseid =models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering=['name']
+        verbose_name = 'Group'
+        verbose_name_plural = 'Groups'
+    
+
+    def str(self):
+        return self.name
+    
+class DekanatWorkers(models.Model):
+    firstname = models.CharField(max_length=50)
+    middlename = models.CharField(max_length=50, blank=True, null=True)
+    lastname = models.CharField(max_length=50)
+    email = models.EmailField(max_length=254, unique=True)
+
+    phone_regex = RegexValidator(
+        regex=r'^\+380\d{9}$',
+        message="Номер телефону повинен бути у форматі: '+380XXXXXXXXX'."
+    )
+
+    phonenumber = models.CharField(
+        validators=[phone_regex],
+        max_length=13,
+        unique=True,
+        verbose_name="Phone Number"
+    )
+
+    class Meta: 
+        ordering = ['firstname']
+        verbose_name = 'Dekanat Worker'
+        verbose_name_plural = 'Dekanat Workers'
+
+    def __str__(self):
+        if self.middlename:
+            return f"{self.firstname} {self.middlename} {self.lastname}"
+        return f"{self.firstname} {self.lastname}"
     
 class Documenttype(models.Model):
     name = models.CharField(max_length=50, unique=True)

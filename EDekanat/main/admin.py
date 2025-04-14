@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Speciality, Course, Documenttype, Document
+from .models import Speciality, Course, Documenttype, Document, Group, DekanatWorkers
 # Register your models here.
 
 @admin.register(Speciality)
@@ -21,3 +21,13 @@ class DocumenttypeAdmin(admin.ModelAdmin):
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ['name', 'documenttypeid']
     list_filter = ['name']
+
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ['name', 'courseid']
+    list_filter = ['courseid']
+
+@admin.register(DekanatWorkers)
+class DekanatWorkersAdmin(admin.ModelAdmin):
+    list_display = ['firstname', 'middlename', 'lastname', 'phonenumber', 'email']  
+    list_filter = ['lastname']
