@@ -1,0 +1,28 @@
+
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Підтвердження видалення групи</title>
+</head>
+<body>
+    <h1>Підтвердження видалення групи</h1>
+
+    <a href="{% url 'home' %}">Повернутись на головну сторінку</a>
+    <p>Ви впевнені, що хочете видалити групу <b>{{ group.name }}</b>?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Видалити</button>
+        <a href="{% url 'group_list' %}">Відмінити</a>
+    </form>
+</body>
+</html>

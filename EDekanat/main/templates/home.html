@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Головна сторінка</title>
+</head>
+<body>
+    <h1>Вітаємо на головній сторінці!</h1>
+    <p>Тут буде інформація про ваш деканат.</p>
+
+    <h2>Навігація</h2>
+    <ul>
+        <li><a href="{% url 'group_list' %}">Список груп</a></li>
+        <li><a href="{% url 'worker_list' %}">Список працівників</a></li>
+        <li><a href="{% url 'group_create' %}">Додати групу</a></li>
+        <li><a href="{% url 'worker_create' %}">Додати працівника</a></li>
+    </ul>
+</body>
+</html>

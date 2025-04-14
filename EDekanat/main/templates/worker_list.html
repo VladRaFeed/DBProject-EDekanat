@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+    <a href="{% url 'home' %}">Повернутись на головну сторінку</a>
+<head>
+    <title>Список працівників деканату</title>
+</head>
+<body>
+    <h1>Список працівників деканату</h1>
+
+   
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Ім'я</th>
+                <th>По батькові</th>
+                <th>Прізвище</th>
+                <th>Email</th>
+                <th>Номер телефону</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for worker in workers %}
+            <tr>
+                <td>{{ worker.firstname }}</td>
+                <td>{{ worker.middlename }}</td>
+                <td>{{ worker.lastname }}</td>
+                <td>{{ worker.email }}</td>
+                <td>{{ worker.phonenumber }}</td>
+                <td>
+                    <a href="{% url 'worker_update' pk=worker.pk %}">Редагувати</a>
+                    <a href="{% url 'worker_delete' pk=worker.pk %}">Видалити</a>
+                
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'worker_create' %}">Додати працівника</a>
+</body>
+</html>
