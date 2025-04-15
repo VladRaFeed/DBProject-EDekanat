@@ -31,8 +31,8 @@ def students_form(request):
                     student=student,
                     requested_document=requested_document
                 )
-                return render(request, 'main/home-form.html', {
-                    'form': form,
+                return render(request, 'main/form-completed.html', {
+                    # 'form': form,
                     'student': student
                 })
 

@@ -13,11 +13,11 @@
     <button type="submit">Подати запит</button>
   </form>
 
-    {% if student %}
-        <h2>Results:</h2>
+    {% if not student %}
+        {% comment %} <h2>Results:</h2>
         <p>{{ student.firstname }} {{ student.middlename }} {{ student.lastname }} знайдено!</p>
         <p>Запит подано!</p>
-    {% else %}
+    {% else %} {% endcomment %}
         <h2>Results:</h2>
         <p>Студента з введеними даними не знайдено!</p>
     {% endif %}
