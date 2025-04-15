@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 
 # Create your models here.
 class Speciality(models.Model):
@@ -91,3 +91,23 @@ class Document(models.Model):
 
     def __str__(self):
         return self.name
+
+class Student(models.Model):
+    zalikbook = models.IntegerField(unique=True, validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
+    firstname = models.CharField(max_length=20, unique=False)
+    middlename = models.CharField(max_length=20, unique=False)
+    lastname = models.CharField(max_length=20, unique=False)
+    groupid = models.ForeignKey(Group, on_delete=models.CASCADE)
+    courseid = models.ForeignKey(Course, on_delete=models.CASCADE)
+    specialityid = models.ForeignKey(Speciality, on_delete=models.CASCADE)
+    email = models.EmailField(max_length=30, unique=True)
+    phonenumber = models.CharField(max_length=13, unique=True)
+    contractnumber = models.CharField(max_length=8, unique=True)
+
+    class Meta:
+        ordering=['zalikbook']
+        verbose_name = 'Student'
+        verbose_name_plural = 'Students'
+
+    def __str__(self):
+        return str(self.zalikbook)
