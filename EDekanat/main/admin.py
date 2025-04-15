@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Speciality, Course, Documenttype, Document, Group, DekanatWorkers, Student
+from .models import Speciality, Course, Documenttype, Document, Group, DekanatWorkers, Student, Requests
 # Register your models here.
 
 @admin.register(Speciality)
@@ -47,3 +47,16 @@ class StudentAdmin(admin.ModelAdmin):
         'contractnumber',
     ]
     list_filter = ['lastname', 'groupid', 'courseid', 'specialityid']
+
+@admin.register(Requests)
+class RequestsAdmin(admin.ModelAdmin):
+    list_display = [
+        'student', 
+        'requested_document', 
+        'status', 
+        'created_at', 
+        'given_by', 
+        'comment',
+    ]
+    list_filter = ['status', 'created_at', 'given_by']
+    search_fields = ['student__zalikbook', 'student__firstname', 'student__lastname', 'requested_document__name']

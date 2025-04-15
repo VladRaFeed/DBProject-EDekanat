@@ -116,3 +116,17 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.firstname} {self.lastname} ({self.zalikbook})"
 
+class Requests(models.Model):
+    student = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='requests')
+    requested_document = models.ForeignKey('Document', on_delete=models.PROTECT,related_name='requests')
+    status = models.BooleanField(default=False)  
+    created_at = models.DateTimeField(auto_now_add=True)  
+    given_by = models.ForeignKey('DekanatWorkers', on_delete=models.SET_NULL, null=True, blank=True, related_name='handled_requests')  # хто видав документ
+    comment = models.CharField(max_length=255, blank=True) 
+
+    class Meta:
+        verbose_name = "Request"
+        verbose_name_plural = "Requests"
+        ordering = ['-created_at'] 
+    def __str__(self):
+        return f"Request by {self.student} for {self.requested_document} (Status: {'Done' if self.status else 'Pending'})"
