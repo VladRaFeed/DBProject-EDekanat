@@ -34,5 +34,16 @@ class DekanatWorkersAdmin(admin.ModelAdmin):
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['email', 'lastname', 'zalikbook']
-    list_filter = ['lastname']
+    list_display = [
+        'zalikbook',
+        'firstname',
+        'middlename',
+        'lastname',
+        'groupid',
+        'courseid',
+        'specialityid',
+        'email',
+        'phonenumber',
+        'contractnumber',
+    ]
+    list_filter = ['lastname', 'groupid', 'courseid', 'specialityid']

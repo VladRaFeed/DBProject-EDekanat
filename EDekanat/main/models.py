@@ -93,7 +93,10 @@ class Document(models.Model):
         return self.name
 
 class Student(models.Model):
-    zalikbook = models.IntegerField(unique=True, validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
+    zalikbook = models.IntegerField(
+            primary_key=True,
+            validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)]
+        )
     firstname = models.CharField(max_length=20, unique=False)
     middlename = models.CharField(max_length=20, unique=False)
     lastname = models.CharField(max_length=20, unique=False)
@@ -105,9 +108,10 @@ class Student(models.Model):
     contractnumber = models.CharField(max_length=8, unique=True)
 
     class Meta:
-        ordering=['zalikbook']
+        ordering = ['zalikbook']
         verbose_name = 'Student'
         verbose_name_plural = 'Students'
 
     def __str__(self):
-        return str(self.zalikbook)
+        return f"{self.firstname} {self.lastname} ({self.zalikbook})"
+
