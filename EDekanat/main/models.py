@@ -16,17 +16,20 @@ class Speciality(models.Model):
         return self.name
     
 class Course(models.Model):
-    number = models.IntegerField(unique=False)
+    number = models.IntegerField()
     specialityid = models.ForeignKey(Speciality, on_delete=models.CASCADE)
 
-
     class Meta:
-        ordering=['number']
+        ordering = ['number']
         verbose_name = 'Course'
         verbose_name_plural = 'Courses'
+        constraints = [
+            models.UniqueConstraint(fields=['number', 'specialityid'], name='unique_course_speciality')
+        ]
 
     def __str__(self):
         return f"{self.number} курс ({self.specialityid.name})"
+
 
 class Group(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -82,7 +85,7 @@ class Documenttype(models.Model):
         return self.name
 
 class Document(models.Model):
-    name = models.CharField(max_length=50, unique=False)
+    name = models.CharField(max_length=50, unique=True)
     documenttypeid = models.ForeignKey(Documenttype, on_delete=models.CASCADE)
 
     class Meta:
@@ -105,7 +108,19 @@ class Student(models.Model):
     courseid = models.ForeignKey(Course, on_delete=models.CASCADE)
     specialityid = models.ForeignKey(Speciality, on_delete=models.CASCADE)
     email = models.EmailField(max_length=30, unique=True)
-    phonenumber = models.CharField(max_length=13, unique=True)
+   
+    phone_regex = RegexValidator(
+        regex=r'^\+380\d{9}$',
+        message="Номер телефону повинен бути у форматі: '+380XXXXXXXXX'."
+    )
+
+    phonenumber = models.CharField(
+        validators=[phone_regex],
+        max_length=13,
+        unique=True,
+        verbose_name="Phone Number"
+    )
+
     contractnumber = models.CharField(max_length=8, unique=True)
 
     class Meta:
