@@ -38,8 +38,9 @@ class Group(models.Model):
         verbose_name_plural = 'Groups'
     
 
-    def str(self):
+    def __str__(self):
         return self.name
+
     
 class DekanatWorkers(models.Model):
     firstname = models.CharField(max_length=50)
