@@ -1,10 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %} Students form {% endblock title%}
+{% block title %}Students Form{% endblock title %}
 
-{% block content %} 
-    <h1>students form</h1>
-    <form action='' method='post'>
-        
-    </form>
+{% block content %}
+  <h1>Форма створення запиту на документ</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+    </table>
+    <button type="submit">Подати запит</button>
+  </form>
+
+    {% if student %}
+        <h2>Results:</h2>
+        <p>{{ student.firstname }} {{ student.middlename }} {{ student.lastname }} знайдено!</p>
+        <p>Запит подано!</p>
+    {% else %}
+        <h2>Results:</h2>
+        <p>Студента з введеними даними не знайдено!</p>
+    {% endif %}
+
 {% endblock content %}
