@@ -45,9 +45,9 @@ img {
     background-color: #1E3A8A;
     color: #FFFFFF;
     font-size: 16px;
-    line-height: 1.5;
-    padding-top: 15px;
-    padding-bottom: 15px;
+    line-height: 1;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
 .nav-a {
@@ -65,4 +65,11 @@ img {
     background-color: #93C5FD;
     color: #3B82F6;
 
+}
+
+.form-completed-div{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
 }

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from .forms import StudentSearchForm
 from .models import Student, Group, Requests
+from django.forms.utils import ErrorList
 
 def students_form(request):
     form = StudentSearchForm(request.POST or None)
@@ -10,13 +11,11 @@ def students_form(request):
         first_name = form.cleaned_data['first_name']
         last_name = form.cleaned_data['last_name']
         middle_name = form.cleaned_data['middle_name']
-        group_name = form.cleaned_data['group']
-
         group = form.cleaned_data['group']
+
         if not group:
             form.add_error('group', 'Групу не знайдено.')
         else:
-
             student = Student.objects.filter(
                 zalikbook=zalikbook,
                 firstname__iexact=first_name,
@@ -32,8 +31,11 @@ def students_form(request):
                     requested_document=requested_document
                 )
                 return render(request, 'main/form-completed.html', {
-                    # 'form': form,
                     'student': student
                 })
+            else:
+                # ✅ Додай загальну помилку (non_field_errors)
+                form.add_error(None, 'Студента з введеними даними не знайдено.')
 
     return render(request, 'main/home-form.html', {'form': form})
+
