@@ -5,11 +5,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.staticfiles import finders
 
 import io
+from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import fonts
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
+
 
 from django.core.mail import EmailMessage
 # Register your models here.
@@ -92,56 +94,12 @@ class RequestsAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-
-    def generate_pdf_view(self, request, request_id):
-            # Отримуємо об'єкт запиту
-            request_obj = get_object_or_404(Requests, pk=request_id)
-
-            # Створюємо буфер для збереження PDF
-            buffer = io.BytesIO()
-
-            # Створюємо об'єкт PDF
-            p = canvas.Canvas(buffer, pagesize=letter)
-
-            # Зареєструємо шрифт
-            font_path = finders.find('fonts/timesnrcyrmt.ttf')
-
-                # Реєструємо шрифт
-            pdfmetrics.registerFont(TTFont('TimesNewRoman', font_path))
-
-            # Встановлюємо шрифт для кирилиці
-            p.setFont('TimesNewRoman', 12)
-
-            # Генеруємо вміст для PDF (заповнюємо даними з request_obj)
-            p.drawString(100, 780, f"Запит №: {request_obj.id}")
-            p.drawString(100, 760, f"Студент: {request_obj.student}")
-            p.drawString(100, 740, f"Документ: {request_obj.requested_document}")
-            p.drawString(100, 720, f"Статус: {request_obj.status}")
-
-            # Завершуємо створення сторінки
-            p.showPage()
-            p.save()
-
-            # Повертаємо PDF у відповіді
-            buffer.seek(0)
-            response = HttpResponse(buffer, content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="request_{0}.pdf"'.format(request_obj.id)
-            return response
-
-    def send_pdf_by_email(self, request, request_id):
-        # Отримуємо об'єкт запиту (якщо потрібно)
-        request_obj = get_object_or_404(Requests, pk=request_id)
-
-        # Створюємо буфер для збереження PDF
-        buffer = io.BytesIO()
-
-        # Створюємо об'єкт PDF
+    def generate_pdf_buffer(self, request_obj):
+        buffer = BytesIO()
         p = canvas.Canvas(buffer, pagesize=letter)
 
         # Зареєструємо шрифт
         font_path = finders.find('fonts/timesnrcyrmt.ttf')
-
-            # Реєструємо шрифт
         pdfmetrics.registerFont(TTFont('TimesNewRoman', font_path))
 
         # Встановлюємо шрифт для кирилиці
@@ -157,11 +115,31 @@ class RequestsAdmin(admin.ModelAdmin):
         p.showPage()
         p.save()
 
-        # Повертаємо PDF у пам'яті для надсилання через email
+        # Повертаємо PDF у пам'яті
         buffer.seek(0)
+        return buffer
 
+    def generate_pdf_view(self, request, request_id):
+        # Отримуємо об'єкт запиту
+        request_obj = get_object_or_404(Requests, pk=request_id)
+
+        # Використовуємо загальний метод для генерації PDF
+        buffer = self.generate_pdf_buffer(request_obj)
+
+        # Повертаємо PDF у відповіді
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="request_{request_obj.id}.pdf"'
+        return response
+
+    def send_pdf_by_email(self, request, request_id):
+        # Отримуємо об'єкт запиту
+        request_obj = get_object_or_404(Requests, pk=request_id)
+
+        # Використовуємо загальний метод для генерації PDF
+        buffer = self.generate_pdf_buffer(request_obj)
+
+        # Отримуємо email адреса для відправки
         student = Student.objects.filter(zalikbook=request_obj.student.zalikbook).first()
-        # Отримуємо email адреса для відправки (можна додати поле для email в моделі Request)
         recipient_email = student.email  # Наприклад, одержувач
 
         # Створюємо email
