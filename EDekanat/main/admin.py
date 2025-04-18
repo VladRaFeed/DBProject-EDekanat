@@ -11,10 +11,13 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import fonts
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
+from reportlab.lib.utils import ImageReader
 
 
 from django.core.mail import EmailMessage
 # Register your models here.
+
+from django.contrib import messages
 
 @admin.register(Speciality)
 class SpecialityAdmin(admin.ModelAdmin):
@@ -98,30 +101,92 @@ class RequestsAdmin(admin.ModelAdmin):
         buffer = BytesIO()
         p = canvas.Canvas(buffer, pagesize=letter)
 
-        # Зареєструємо шрифт
+        student = Student.objects.filter(zalikbook=request_obj.student.zalikbook).first()
+
+        # Реєстрація шрифту для підтримки кирилиці
         font_path = finders.find('fonts/timesnrcyrmt.ttf')
         pdfmetrics.registerFont(TTFont('TimesNewRoman', font_path))
-
-        # Встановлюємо шрифт для кирилиці
         p.setFont('TimesNewRoman', 12)
 
-        # Генеруємо вміст для PDF (заповнюємо даними з request_obj)
-        p.drawString(100, 780, f"Запит №: {request_obj.id}")
-        p.drawString(100, 760, f"Студент: {request_obj.student}")
-        p.drawString(100, 740, f"Документ: {request_obj.requested_document}")
-        p.drawString(100, 720, f"Статус: {request_obj.status}")
+        # Шапка документу
+        p.drawCentredString(300, 765, "МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ")
+        p.drawCentredString(300, 750, "КИЇВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ імені Тараса Шевченка")
+        p.drawCentredString(300, 735, "ФАКУЛЬТЕТ ІНФОРМАЦІЙНИХ ТЕХНОЛОГІЙ")
+        p.drawCentredString(300, 720, "Кафедра програмних систем і технологій")
 
-        # Завершуємо створення сторінки
+        # Контактна інформація (менший шрифт)
+        p.setFont('TimesNewRoman', 10)
+        contact_line1 = "вул. Богдана Гаврилишина, 24, м. Київ, 01042, тел./факс +38 044 529 1423"
+        contact_line2 = "Email: fitdekanat@knu.ua, код ЄДРПОУ 00301931"
+        p.drawCentredString(300, 705, contact_line1)
+        p.drawCentredString(300, 695, contact_line2)
+
+        # Номер довідки та дата
+        p.setFont('TimesNewRoman', 12)
+        p.drawString(75, 675, "_____ № _____")
+
+        # Заголовок
+        p.drawCentredString(300, 655, "ДОВІДКА")
+
+        # Основний текст довідки
+        text_y = 635
+        p.setFont('TimesNewRoman', 12)
+
+        student_name = f"{student.lastname} {student.firstname} {student.middlename}"
+        course = get_object_or_404(Course, pk=student.courseid_id)
+        speciality = get_object_or_404(Speciality, pk=student.specialityid_id)
+
+        text_lines = [
+            f"Видана здобувачу {student_name.upper()} в тому, що він дійсно є здобувачем",
+            f"{course.number} курсу ОС 'бакалавр' денної форми навчання спеціальності",
+            f"'{speciality.name}' за освітньою програмою '{speciality.description}'",
+            f"факультету інформаційних технологій Київського національного університету",
+            f"імені Тараса Шевченка 4 рівня акредитації.",
+            "",
+            "Зарахований наказом ректора 'Про зарахування за державним замовленням'",
+            "№3208-33 від 10.08.25 року",
+            "",
+            "Початок навчання 01 вересня 2025 року.",
+            "",
+            "Закінчує навчання 30 червня 2029 року.",
+            "",
+            "Видана для подання за місцем вимоги."
+        ]
+
+        for line in text_lines:
+            p.drawString(75, text_y, line)
+            text_y -= 20
+        
+
+        # Підписи
+        text_y -= 40
+
+        dekanat_worker = get_object_or_404(DekanatWorkers, pk=request_obj.given_by_id)
+        p.drawString(450, text_y - 20, f"{dekanat_worker.firstname} {dekanat_worker.lastname.upper()}")
+
+        p.drawString(75, text_y, "Відповідальний працівник")
+        p.drawString(75, text_y - 20, "деканату з навчально-виховної роботи")
+
+        stamp_path = finders.find('img/stamp.png')  
+
+        if stamp_path:
+            stamp = ImageReader(stamp_path)
+            p.drawImage(stamp, 320, 260, width=125, height=100, 
+                    preserveAspectRatio=True, mask='auto')
+
+        # Завершення сторінки
         p.showPage()
         p.save()
-
-        # Повертаємо PDF у пам'яті
+                
         buffer.seek(0)
         return buffer
 
     def generate_pdf_view(self, request, request_id):
-        # Отримуємо об'єкт запиту
         request_obj = get_object_or_404(Requests, pk=request_id)
+
+        if request_obj.given_by is None:
+            self.message_user(request, "Не обрано відповідального працівника деканату.", level=messages.ERROR)
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
         # Використовуємо загальний метод для генерації PDF
         buffer = self.generate_pdf_buffer(request_obj)
@@ -132,8 +197,11 @@ class RequestsAdmin(admin.ModelAdmin):
         return response
 
     def send_pdf_by_email(self, request, request_id):
-        # Отримуємо об'єкт запиту
         request_obj = get_object_or_404(Requests, pk=request_id)
+
+        if request_obj.given_by is None:
+            self.message_user(request, "Не обрано відповідального працівника деканату.", level=messages.ERROR)
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
         # Використовуємо загальний метод для генерації PDF
         buffer = self.generate_pdf_buffer(request_obj)
