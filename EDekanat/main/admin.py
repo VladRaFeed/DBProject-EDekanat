@@ -3,16 +3,13 @@ from .models import Speciality, Course, Documenttype, Document, Group, DekanatWo
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.staticfiles import finders
-
-import io
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
-from reportlab.lib import fonts
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.utils import ImageReader
-
+from datetime import datetime
 
 from django.core.mail import EmailMessage
 # Register your models here.
@@ -97,7 +94,11 @@ class RequestsAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    def generate_pdf_buffer(self, request_obj):
+    def generate_pdf_buffer(self, request, request_obj):
+        if request_obj.requested_document.name not in ['Витяг про місце навчання', 'Довідка 20']:
+            self.message_user(request, f"Помилка: Немає шаблону для документу типу '{request_obj.requested_document.name}'", level=messages.ERROR)
+            return None
+
         buffer = BytesIO()
         p = canvas.Canvas(buffer, pagesize=letter)
 
@@ -108,73 +109,133 @@ class RequestsAdmin(admin.ModelAdmin):
         pdfmetrics.registerFont(TTFont('TimesNewRoman', font_path))
         p.setFont('TimesNewRoman', 12)
 
-        # Шапка документу
-        p.drawCentredString(300, 765, "МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ")
-        p.drawCentredString(300, 750, "КИЇВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ імені Тараса Шевченка")
-        p.drawCentredString(300, 735, "ФАКУЛЬТЕТ ІНФОРМАЦІЙНИХ ТЕХНОЛОГІЙ")
-        p.drawCentredString(300, 720, "Кафедра програмних систем і технологій")
 
-        # Контактна інформація (менший шрифт)
-        p.setFont('TimesNewRoman', 10)
-        contact_line1 = "вул. Богдана Гаврилишина, 24, м. Київ, 01042, тел./факс +38 044 529 1423"
-        contact_line2 = "Email: fitdekanat@knu.ua, код ЄДРПОУ 00301931"
-        p.drawCentredString(300, 705, contact_line1)
-        p.drawCentredString(300, 695, contact_line2)
+        if request_obj.requested_document.name == 'Витяг про місце навчання':
+            # Шапка документу
+            p.drawCentredString(300, 765, "МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ")
+            p.drawCentredString(300, 750, "КИЇВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ імені Тараса Шевченка")
+            p.drawCentredString(300, 735, "ФАКУЛЬТЕТ ІНФОРМАЦІЙНИХ ТЕХНОЛОГІЙ")
+            p.drawCentredString(300, 720, "Кафедра програмних систем і технологій")
 
-        # Номер довідки та дата
-        p.setFont('TimesNewRoman', 12)
-        p.drawString(75, 675, "_____ № _____")
+            # Контактна інформація (менший шрифт)
+            p.setFont('TimesNewRoman', 10)
+            contact_line1 = "вул. Богдана Гаврилишина, 24, м. Київ, 01042, тел./факс +38 044 529 1423"
+            contact_line2 = "Email: fitdekanat@knu.ua, код ЄДРПОУ 00301931"
+            p.drawCentredString(300, 705, contact_line1)
+            p.drawCentredString(300, 695, contact_line2)
 
-        # Заголовок
-        p.drawCentredString(300, 655, "ДОВІДКА")
+            # Номер довідки та дата
+            p.setFont('TimesNewRoman', 12)
+            p.drawString(75, 675, f"_____ № {request_obj.id}_____")
 
-        # Основний текст довідки
-        text_y = 635
-        p.setFont('TimesNewRoman', 12)
+            # Заголовок
+            p.drawCentredString(300, 655, "ДОВІДКА")
 
-        student_name = f"{student.lastname} {student.firstname} {student.middlename}"
-        course = get_object_or_404(Course, pk=student.courseid_id)
-        speciality = get_object_or_404(Speciality, pk=student.specialityid_id)
+            # Основний текст довідки
+            text_y = 635
+            p.setFont('TimesNewRoman', 12)
 
-        text_lines = [
-            f"Видана здобувачу {student_name.upper()} в тому, що він дійсно є здобувачем",
-            f"{course.number} курсу ОС 'бакалавр' денної форми навчання спеціальності",
-            f"'{speciality.name}' за освітньою програмою '{speciality.description}'",
-            f"факультету інформаційних технологій Київського національного університету",
-            f"імені Тараса Шевченка 4 рівня акредитації.",
-            "",
-            "Зарахований наказом ректора 'Про зарахування за державним замовленням'",
-            "№3208-33 від 10.08.25 року",
-            "",
-            "Початок навчання 01 вересня 2025 року.",
-            "",
-            "Закінчує навчання 30 червня 2029 року.",
-            "",
-            "Видана для подання за місцем вимоги."
-        ]
+            student_name = f"{student.lastname} {student.firstname} {student.middlename}"
+            course = get_object_or_404(Course, pk=student.courseid_id)
+            speciality = get_object_or_404(Speciality, pk=student.specialityid_id)
 
-        for line in text_lines:
-            p.drawString(75, text_y, line)
-            text_y -= 20
-        
+            text_lines = [
+                f"Видана здобувачу {student_name.upper()} в тому, що він дійсно є",
+                f"здобувачем освіти {course.number} курсу ОС 'бакалавр' денної форми навчання спеціальності",
+                f"'{speciality.name}' за освітньою програмою '{speciality.description}'",
+                f"факультету інформаційних технологій Київського національного університету",
+                f"імені Тараса Шевченка 4 рівня акредитації.",
+                "",
+                "Зарахований наказом ректора 'Про зарахування за державним замовленням'",
+                "№3208-33 від 10.08.25 року",
+                "",
+                f"Початок навчання 01 вересня {2025 - int(course.number)} року.",
+                "",
+                f"Закінчує навчання 30 червня {2025 + 4- int(course.number)} року.",
+                "",
+                "Видана для подання за місцем вимоги."
+            ]
 
-        # Підписи
-        text_y -= 40
+            for line in text_lines:
+                p.drawString(75, text_y, line)
+                text_y -= 20
+            
 
-        dekanat_worker = get_object_or_404(DekanatWorkers, pk=request_obj.given_by_id)
-        p.drawString(450, text_y - 20, f"{dekanat_worker.firstname} {dekanat_worker.lastname.upper()}")
+            # Підписи
+            text_y -= 40
 
-        p.drawString(75, text_y, "Відповідальний працівник")
-        p.drawString(75, text_y - 20, "деканату з навчально-виховної роботи")
+            dekanat_worker = get_object_or_404(DekanatWorkers, pk=request_obj.given_by_id)
+            p.drawString(450, text_y - 20, f"{dekanat_worker.firstname} {dekanat_worker.lastname.upper()}")
 
-        stamp_path = finders.find('img/stamp.png')  
+            p.drawString(75, text_y, "Відповідальний працівник")
+            p.drawString(75, text_y - 20, "деканату з навчально-виховної роботи")
 
-        if stamp_path:
-            stamp = ImageReader(stamp_path)
-            p.drawImage(stamp, 320, 260, width=125, height=100, 
-                    preserveAspectRatio=True, mask='auto')
+            stamp_path = finders.find('img/stamp.png')  
 
-        # Завершення сторінки
+            if stamp_path:
+                stamp = ImageReader(stamp_path)
+                p.drawImage(stamp, 320, 260, width=125, height=100, 
+                        preserveAspectRatio=True, mask='auto')
+
+        elif request_obj.requested_document.name == 'Довідка 20':
+            p.drawCentredString(300, 780, "УКРАЇНА")
+            p.drawCentredString(300, 765, "КИЇВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ")
+            p.drawCentredString(300, 750, "ІМЕНІ ТАРАСА ШЕВЧЕНКА")
+            
+            # Дата (поточний рік)
+            current_date = datetime.now().strftime('"%d"_____%m____ %Y р.')
+            p.drawString(100, 735, current_date)
+            
+            # Номер довідки
+            p.drawString(100, 720, f"№ {request_obj.id}/2025/12")
+            
+            # Адреса
+            p.drawString(100, 705, "01601, м. Київ")
+            p.drawString(100, 690, "вул. Володимирська, 64/13")
+            
+            # Заголовок додатка
+            p.drawCentredString(300, 660, "Додаток 20")
+            p.drawCentredString(300, 645, "до Положення")
+            
+            # Основний текст
+            student = request_obj.student
+            student_name = f"{student.lastname} {student.firstname} {student.middlename}"
+            course = get_object_or_404(Course, pk=student.courseid_id)
+            speciality = get_object_or_404(Speciality, pk=student.specialityid_id)
+            
+            text_lines = [
+                f"Видана призовникові {student_name.upper()}",
+                f"про те, що він у {2025 - int(course.number)} році вступив до",
+                "Київського національного університету імені Тараса Шевченка",
+                "(повне найменування закладу освіти)",
+                f"і зараз навчається на {course.number} курсі денного відділення за спеціальністю {speciality.description}.",
+                "",
+                f"Строк закінчення закладу освіти 30 червня {2025 + 4 - int(course.number)} р.",
+                "",
+                "Довідку видано для подання до військомату"
+            ]
+            
+            text_y = 600
+            for line in text_lines:
+                p.drawString(100, text_y, line)
+                text_y -= 20
+            
+            # Підписи
+            text_y -= 40
+            p.drawString(75, text_y, "Виконувач обов'язків начальника")
+            p.drawString(75, text_y-15, "військово-мобілізаційного підрозділу (відділу)")
+            
+            dekanat_worker = get_object_or_404(DekanatWorkers, pk=request_obj.given_by_id)
+            p.drawString(475, text_y - 15, f"{dekanat_worker.firstname} {dekanat_worker.lastname.upper()}")
+
+            # Печатка (якщо потрібна)
+            stamp_path = finders.find('img/stamp.png')  
+
+            if stamp_path:
+                stamp = ImageReader(stamp_path)
+                p.drawImage(stamp, 350, 315, width=125, height=100, 
+                        preserveAspectRatio=True, mask='auto')
+
         p.showPage()
         p.save()
                 
@@ -189,8 +250,11 @@ class RequestsAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
         # Використовуємо загальний метод для генерації PDF
-        buffer = self.generate_pdf_buffer(request_obj)
+        buffer = self.generate_pdf_buffer(request, request_obj)
 
+        if buffer is None:  # Якщо шаблон не знайдено
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    
         # Повертаємо PDF у відповіді
         response = HttpResponse(buffer, content_type='application/pdf')
         response['Content-Disposition'] = f'inline; filename="request_{request_obj.id}.pdf"'
@@ -204,8 +268,11 @@ class RequestsAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
         # Використовуємо загальний метод для генерації PDF
-        buffer = self.generate_pdf_buffer(request_obj)
+        buffer = self.generate_pdf_buffer(request,request_obj)
 
+        if buffer is None:  # Якщо шаблон не знайдено
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
         # Отримуємо email адреса для відправки
         student = Student.objects.filter(zalikbook=request_obj.student.zalikbook).first()
         recipient_email = student.email  # Наприклад, одержувач
