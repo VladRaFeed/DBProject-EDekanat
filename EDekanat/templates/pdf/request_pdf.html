@@ -1,0 +1,21 @@
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .content {
+            margin: 20px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Запит №{{ request_obj.id }}</h1>
+        <p>Студент: {{ request_obj.student }}</p>
+        <p>Документ: {{ request_obj.requested_document }}</p>
+        <p>Статус: {{ request_obj.status }}</p>
+    </div>
+</body>
+</html>

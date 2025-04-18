@@ -1,0 +1,18 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block object-tools %}
+  {{ block.super }}
+  {% if change %}
+    <li style="display: inline-block; margin-right: 10px;">
+      <a href="{% url 'admin:generate-request-pdf' original.id %}" class="button">
+        📄 Згенерувати PDF
+      </a>
+    </li>
+    <li style="display: inline-block;">
+      <a href="{% url 'admin:send-pdf-by-mail' original.id %}" class="button">
+        ✉️ Надіслати PDF
+      </a>
+    </li>
+  {% endif %}
+{% endblock %}
