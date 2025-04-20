@@ -39,7 +39,6 @@ def students_form(request):
                     'student': student
                 })
             else:
-                # ✅ Додай загальну помилку (non_field_errors)
                 form.add_error(None, 'Студента з введеними даними не знайдено.')
 
     return render(request, 'main/home-form.html', {'form': form})

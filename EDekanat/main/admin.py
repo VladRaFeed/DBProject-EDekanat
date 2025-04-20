@@ -16,6 +16,8 @@ from django.core.mail import EmailMessage
 
 from django.contrib import messages
 
+from transliterate import translit
+
 @admin.register(Speciality)
 class SpecialityAdmin(admin.ModelAdmin):
     list_display = ['name', 'description']
@@ -95,7 +97,7 @@ class RequestsAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def generate_pdf_buffer(self, request, request_obj):
-        if request_obj.requested_document.name not in ['Витяг про місце навчання', 'Довідка 20']:
+        if request_obj.requested_document.name not in ['Витяг про місце навчання', 'Довідка 20', 'Сертифікат про знання англійської мови']:
             self.message_user(request, f"Помилка: Немає шаблону для документу типу '{request_obj.requested_document.name}'", level=messages.ERROR)
             return None
 
@@ -235,6 +237,85 @@ class RequestsAdmin(admin.ModelAdmin):
                 stamp = ImageReader(stamp_path)
                 p.drawImage(stamp, 350, 315, width=125, height=100, 
                         preserveAspectRatio=True, mask='auto')
+
+        elif request_obj.requested_document.name == 'Сертифікат про знання англійської мови':
+            knulogo_path = finders.find('img/knulogo.png')
+            if knulogo_path:
+                knulogo = ImageReader(knulogo_path)
+                p.drawImage(knulogo, 260, 695, width=80, height=80, preserveAspectRatio=True, mask='auto')  # y +125
+
+            # === HEADER ===
+            p.setFont('TimesNewRoman', 14)
+            p.drawCentredString(300, 675, "LANGUAGE PROFICIENCY ASSESSMENT FORM")  # y +125
+            p.drawCentredString(300, 655, "FROM HOME UNIVERSITY")  # y +125
+
+            # === BASIC INFO ===
+            p.setFont('TimesNewRoman', 12)
+            p.drawString(80, 635, "LANGUAGE TO BE ASSESSED: English")  # y +125
+
+            # === APPLICANT INFORMATION BOX ===
+            p.rect(80, 535, 440, 90)  # y +125
+            p.drawString(90, 605, f"Name of Applicant: {translit(student.lastname, 'uk', reversed=True)} {translit(student.firstname, 'uk', reversed=True)} {translit(student.middlename, 'uk', reversed=True)}")  # y +125
+            p.drawString(90, 585, "Level of the Applicant: Undergraduate")  # y +125
+            p.drawString(90, 565, "Home University: Taras Shevchenko National University of Kyiv")  # y +125
+            p.drawString(90, 545, "Country: Ukraine")  # y +125
+
+            # === CERTIFICATION BOX ===
+            p.rect(80, 385, 440, 140)  # y +125
+            certification_text = [
+                "This is to certify that the above named applicant has",
+                "demonstrated English language proficiency at level:",
+                "B1 (Intermediate) according to the Common European",
+                "Framework of Reference for Languages (CEFR).",
+                "",
+                "The assessment was conducted according to the standards",
+                "of the Language Center of Taras Shevchenko National",
+                "University of Kyiv."
+            ]
+            text_y = 510  # 385 + 125
+            for line in certification_text:
+                p.drawString(90, text_y, line)
+                text_y -= 15
+
+            p.setFont('TimesNewRoman', 8)
+            p.drawString(90, 395, "The University assumes full responsibility for the validity and accuracy of this assessment.")  # y +125
+
+            # === SIGNATURE BOX ===
+            p.rect(80, 205, 440, 160)  # y +125
+
+            p.setFont('TimesNewRoman', 12)
+            p.drawString(90, 345, "Certified by:")  # y +125
+            p.drawString(90, 325, "Name: __Laura Liashenko________")  # y +125
+            p.drawString(90, 305, "Position:")  # y +125
+
+            # Two-column checkboxes
+            left_column = [
+                ("☐ Language Instructor", 90, 285),
+                ("☐ International Office", 90, 265)
+            ]
+            right_column = [
+                ("☐ Department Head", 270, 285),
+                ("☐ Faculty Dean", 270, 265)
+            ]
+            for text, x, y in left_column + right_column:
+                p.drawString(x, y, text)
+
+            # "x" in checkbox manually positioned if needed
+            p.drawString(92, 286, "x")  # y +125
+
+            # SIGNATURE AND DATE
+            p.drawString(90, 235, "Signature: _________________________")  # y +125
+            p.drawString(400, 235, f"Date: {datetime.now().strftime('%d %B %Y')}")  # y +125
+
+            # STAMP (right-aligned inside box)
+            stamp_path = finders.find('img/stamp.png')
+            if stamp_path:
+                stamp = ImageReader(stamp_path)
+                p.drawImage(stamp, 200, 190, width=100, height=100, preserveAspectRatio=True, mask='auto')  # y +125
+
+
+
+
 
         p.showPage()
         p.save()
