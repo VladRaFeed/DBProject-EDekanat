@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'EDekanat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_URL = 'postgresql://dworker:VKpsa1wXrYCaq2Kx2NBqi73GkQ7dJK4j@dpg-cvt994be5dus73a4qc20-a.oregon-postgres.render.com/edekanat_db'
+DATABASE_URL = os.getenv('POSTGRES_EXTERNAL')
 
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL)
