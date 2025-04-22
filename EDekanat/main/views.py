@@ -1,7 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .forms import StudentSearchForm
 from .models import Student, Group, Requests
 from django.forms.utils import ErrorList
+
+from django.template.loader import get_template
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+from django.template.loader import render_to_string
 
 def students_form(request):
     form = StudentSearchForm(request.POST or None)
@@ -34,7 +39,6 @@ def students_form(request):
                     'student': student
                 })
             else:
-                # ✅ Додай загальну помилку (non_field_errors)
                 form.add_error(None, 'Студента з введеними даними не знайдено.')
 
     return render(request, 'main/home-form.html', {'form': form})
