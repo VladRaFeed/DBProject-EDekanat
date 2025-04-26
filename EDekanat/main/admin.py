@@ -245,23 +245,23 @@ class RequestsAdmin(admin.ModelAdmin):
                 knulogo = ImageReader(knulogo_path)
                 p.drawImage(knulogo, 260, 695, width=80, height=80, preserveAspectRatio=True, mask='auto')  # y +125
 
-            # === HEADER ===
+            # Хедер
             p.setFont('TimesNewRoman', 14)
             p.drawCentredString(300, 675, "LANGUAGE PROFICIENCY ASSESSMENT FORM")  # y +125
             p.drawCentredString(300, 655, "FROM HOME UNIVERSITY")  # y +125
 
-            # === BASIC INFO ===
+            # Мова
             p.setFont('TimesNewRoman', 12)
             p.drawString(80, 635, "LANGUAGE TO BE ASSESSED: English")  # y +125
 
-            # === APPLICANT INFORMATION BOX ===
+            # Дані студента
             p.rect(80, 535, 440, 90)  # y +125
             p.drawString(90, 605, f"Name of Applicant: {translit(student.lastname, 'uk', reversed=True)} {translit(student.firstname, 'uk', reversed=True)} {translit(student.middlename, 'uk', reversed=True)}")  # y +125
             p.drawString(90, 585, "Level of the Applicant: Undergraduate")  # y +125
             p.drawString(90, 565, "Home University: Taras Shevchenko National University of Kyiv")  # y +125
             p.drawString(90, 545, "Country: Ukraine")  # y +125
 
-            # === CERTIFICATION BOX ===
+            # Сертифікат бокс
             p.rect(80, 385, 440, 140)  # y +125
             certification_text = [
                 "This is to certify that the above named applicant has",
@@ -281,7 +281,7 @@ class RequestsAdmin(admin.ModelAdmin):
             p.setFont('TimesNewRoman', 8)
             p.drawString(90, 395, "The University assumes full responsibility for the validity and accuracy of this assessment.")  # y +125
 
-            # === SIGNATURE BOX ===
+            # Підписи
             p.rect(80, 205, 440, 160)  # y +125
 
             p.setFont('TimesNewRoman', 12)
@@ -289,7 +289,7 @@ class RequestsAdmin(admin.ModelAdmin):
             p.drawString(90, 325, "Name: __Laura Liashenko________")  # y +125
             p.drawString(90, 305, "Position:")  # y +125
 
-            # Two-column checkboxes
+            # 2 колонки
             left_column = [
                 ("☐ Language Instructor", 90, 285),
                 ("☐ International Office", 90, 265)
@@ -301,14 +301,14 @@ class RequestsAdmin(admin.ModelAdmin):
             for text, x, y in left_column + right_column:
                 p.drawString(x, y, text)
 
-            # "x" in checkbox manually positioned if needed
+
             p.drawString(92, 286, "x")  # y +125
 
-            # SIGNATURE AND DATE
+            # Підпис дата
             p.drawString(90, 235, "Signature: _________________________")  # y +125
             p.drawString(400, 235, f"Date: {datetime.now().strftime('%d %B %Y')}")  # y +125
 
-            # STAMP (right-aligned inside box)
+            # Печатка
             stamp_path = finders.find('img/stamp.png')
             if stamp_path:
                 stamp = ImageReader(stamp_path)

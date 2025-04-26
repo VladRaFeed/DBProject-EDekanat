@@ -1,12 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from .forms import StudentSearchForm
 from .models import Student, Group, Requests
 from django.forms.utils import ErrorList
-
-from django.template.loader import get_template
-from django.http import HttpResponse
-from xhtml2pdf import pisa
-from django.template.loader import render_to_string
 
 def students_form(request):
     form = StudentSearchForm(request.POST or None)
